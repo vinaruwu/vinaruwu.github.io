@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.cdnfonts.com/css/minecraftia" rel="stylesheet">
+    <style>
+        body {
+            user-select: none; /* Отключаем выделение текста */
+        }
+        .content-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px; /* Увеличим ширину меню */
+            margin: 0 auto;
+            padding: 80px 40px; /* Больше padding для длины */
+            background: rgba(0, 0, 0, 0.7);
+            border: 4px solid #4c4c4c;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+        .settings-grid {
+            margin-bottom: 40px; /* Больше отступа снизу */
+            display: grid;
+            gap: 20px; /* Увеличим расстояние между кнопками */
+            justify-content: center;
+            width: 100%;
+        }
+        .setting-item {
+            padding: 15px;
+        }
+        .contact-button {
+            width: 100%;
+            max-width: 700px; /* Ещё шире кнопки */
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Текст слева, иконка справа */
+            background: #727272;
+            color: rgb(247, 247, 247);
+            padding: 15px;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+            font-size: 22px; /* Чуть больше текст */
+            letter-spacing: 0.025em;
+            border: 2px solid rgba(0, 0, 0, 1);
+            box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.5), inset -3px -3px 0 rgba(0, 0, 0, 0.5);
+            text-decoration: none;
+        }
+        .contact-button:hover {
+            background: #a0a0a0;
+        }
+        .contact-text {
+            flex: 0 0 auto;
+            text-align: left; /* Текст строго слева */
+            margin-right: auto; /* Прижимаем к левому краю */
+        }
+        .contact-icon {
+            width: 36px; /* Чуть больше иконки */
+            height: 36px;
+            object-fit: contain;
+            flex: 0 0 auto;
+            margin-left: 10px; /* Отступ от текста */
+        }
+        .btn-minecraft[data-action="back"] {
+            width: 450px; /* Ещё длиннее кнопка "Готово" */
+            margin: 20px auto; /* Больше отступ сверху */
+            font-size: 22px; /* Чуть больше текст */
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;" oncopy="return false;" ondragstart="return false;" ondrop="return false;" onselectstart="return false;">
+    <div class="content-section">
+        <h2>Контакты</h2>
+        <div class="settings-grid">
+            <a href="https://discordapp.com/users/1111827902246436934" class="setting-item btn-minecraft contact-button">
+                <span class="contact-text">Discord</span>
+                <img src="images/discord-icon.png" alt="Discord" class="contact-icon">
+            </a>
+            <a href="https://t.me/ismashfurries" class="setting-item btn-minecraft contact-button">
+                <span class="contact-text">Telegram</span>
+                <img src="images/telegram-icon.png" alt="Telegram" class="contact-icon">
+            </a>
+            <a href="https://steamcommunity.com/id/vinaruwu/" class="setting-item btn-minecraft contact-button">
+                <span class="contact-text">Steam</span>
+                <img src="images/steam-icon.png" alt="Steam" class="contact-icon">
+            </a>
+        </div>
+        <a href="/" class="btn-minecraft" data-action="back">Готово</a>
+    </div>
+    <script src="script.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Портфолио</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            user-select: none; /* Отключаем выделение текста */
+        }
+        .content-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .settings-grid {
+            margin-bottom: 20px;
+            display: grid;
+            gap: 10px;
+            justify-content: center;
+        }
+        .setting-item {
+            text-align: center; /* Центрируем текст в каждом пункте */
+            padding: 10px;
+        }
+        .btn-minecraft {
+            display: inline-block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;" oncopy="return false;" ondragstart="return false;" ondrop="return false;" onselectstart="return false;">
+    <div class="content-section">
+        <h2>Портфолио</h2>
+        <div class="settings-grid">
+            <div class="setting-item">
+                чё
+            </div>
+            <div class="setting-item">
+                Работа 2: Ссылка...
+            </div>
+            <div class="setting-item">
+                Работа 3: Детали...
+            </div>
+            <div class="setting-item">
+                Работа 4: Ещё...
+            </div>
+        </div>
+        <a href="#" class="button btn-minecraft" data-action="back">Готово</a>
+    </div>
+    <script src="js/script.js" defer></script>
+</body>
+</html>
