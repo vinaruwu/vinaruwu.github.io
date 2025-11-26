@@ -1,5 +1,4 @@
 var splashes = [
-    "Я негр!",
     "Добро пожаловать на фурри вторник! :3",
     "Антон, стой!",
     "Приветик!",
@@ -764,4 +763,5 @@ if (finalImg) {
     finalImg.onselectstart = () => false;
     finalImg.ondragstart = () => false;
     finalImg.ondrop = () => false;
+
 }
