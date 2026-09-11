@@ -1,5 +1,5 @@
 /* ============================================================
-   vinar.lol — логика визитки в виде меню Minecraft 1.16.1
+   vinar.space — логика визитки в виде меню Minecraft 1.16.1
    ============================================================ */
 (function () {
     'use strict';
@@ -181,20 +181,24 @@
         tintCtx.fillStyle = color;
         tintCtx.fillRect(0, 0, 16, 16);
         tintCtx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(tintCv, 0, 0, g.sw, g.sh, dx, dy, g.drawW, 8);
+        ctx.drawImage(tintCv, 0, 0, g.sw, g.sh, dx * 2, dy * 2, g.drawW * 2, 16);
     }
 
     function drawTextOnCanvas(canvas, text, color, shadow) {
         var ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
         var total = 0, glyphs = [], i, g;
         for (i = 0; i < text.length; i++) {
             g = glyphInfo(text.charAt(i));
             glyphs.push(g);
             total += g ? g.adv : 4;
         }
-        canvas.width = Math.max(1, total);
-        canvas.height = 8;
+        // рисуем во внутреннем 2x: unicode-глифы двойного разрешения ложатся 1:1,
+        // латиница 8x8 удваивается nearest-ом. imageSmoothingEnabled задаём ТОЛЬКО
+        // после canvas.width/height — присвоение размера сбрасывает контекст,
+        // иначе кириллица ужмётся 2:1 с билинейным мылом
+        canvas.width = Math.max(1, Math.ceil(total * 2));
+        canvas.height = 16;
+        ctx.imageSmoothingEnabled = false;
         var pass, x, j;
         for (pass = 0; pass < 2; pass++) { // 0 — тень (+1,+1), 1 — основной слой
             x = 0;

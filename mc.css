@@ -1,5 +1,5 @@
 /* ============================================================
-   vinar.lol — визитка в виде главного меню Minecraft 1.16.1
+   vinar.space — визитка в виде главного меню Minecraft 1.16.1
    Весь вид ванильный: настоящие текстуры widgets.png, логотип,
    шрифт-реплика Mojangles. 1u = один пиксель GUI-масштаба.
    ============================================================ */
@@ -217,15 +217,16 @@ canvas.mc-text {
 
 .btn-access:hover { background-position: 0 calc(-20 * var(--u)); }
 
-/* --- самоцвет на кнопке Realms --- */
+/* --- самоцвет на кнопке Realms: ванильный trial_icon.png (нижний кадр 8x8) --- */
 .realms-gem {
     position: absolute;
     right: calc(8 * var(--u));
     top: 50%;
-    width: calc(6 * var(--u));
-    height: calc(6 * var(--u));
+    width: calc(8 * var(--u));
+    height: calc(8 * var(--u));
     transform: translateY(-50%);
     pointer-events: none;
+    image-rendering: pixelated;
 }
 
 /* --- нижние строки --- */
