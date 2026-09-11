@@ -1,0 +1,617 @@
+/* ============================================================
+   vinar.lol — визитка в виде главного меню Minecraft 1.16.1
+   Весь вид ванильный: настоящие текстуры widgets.png, логотип,
+   шрифт-реплика Mojangles. 1u = один пиксель GUI-масштаба.
+   ============================================================ */
+
+@font-face {
+    font-family: 'Minecraft';
+    src: url('assets/font/minecraft.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'OptiDracula';
+    src: url('fonts/OptiDracula.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    --u: 3px; /* пересчитывается в mc.js по формуле auto-масштаба 1.16.1 */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Minecraft', 'Minecraftia', monospace, sans-serif;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+img { image-rendering: pixelated; }
+
+.mc-screen {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.hidden { display: none !important; }
+
+/* ================= ГЛАВНОЕ МЕНЮ ================= */
+
+#screen-title { --widgets: url('assets/gui/widgets16.png'); }
+
+/* --- вращающаяся 3D-панорама (общий фон сайта) --- */
+.panorama {
+    position: fixed;
+    inset: 0;
+    perspective: 1024px;
+    overflow: hidden;
+    background: #000;
+    filter: blur(5px) saturate(1.03);
+    z-index: 0;
+}
+
+body.noblur .panorama { filter: none; }
+
+.pano-cube {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(-30deg) rotateY(25deg);
+}
+
+.pano-face {
+    position: absolute;
+    left: -1040px;
+    top: -1040px;
+    width: 2080px;
+    height: 2080px;
+    background-size: 2080px 2080px;
+    image-rendering: pixelated;
+    backface-visibility: hidden;
+}
+
+.pano-face.f-front  { background-image: url('images/panorama_0.png'); transform: rotateY(0deg)   translateZ(-1024px); }
+.pano-face.f-right  { background-image: url('images/panorama_1.png'); transform: rotateY(-90deg) translateZ(-1024px); }
+.pano-face.f-back   { background-image: url('images/panorama_2.png'); transform: rotateY(180deg) translateZ(-1024px); }
+.pano-face.f-left   { background-image: url('images/panorama_3.png'); transform: rotateY(90deg)  translateZ(-1024px); }
+.pano-face.f-top    { background-image: url('images/panorama_4.png'); transform: rotateX(-90deg) translateZ(-1024px); }
+.pano-face.f-bottom { background-image: url('images/panorama_5.png'); transform: rotateX(90deg)  translateZ(-1024px); }
+
+/* --- логотип VINARCRAFT (родной лого проекта, крупный как ванильный) --- */
+.title-logo {
+    position: absolute;
+    left: calc(50% - 155 * var(--u));
+    top: calc(28 * var(--u));
+    width: calc(310 * var(--u));
+    height: calc(54.4 * var(--u));
+    background: url('images/logo.png') 0 0 / 100% 100% no-repeat;
+    image-rendering: pixelated;
+}
+
+/* --- сплэш (тексты — ванильная отрисовка, тексты наши) --- */
+.splash {
+    position: absolute;
+    left: calc(50% + 118 * var(--u));
+    top: calc(62 * var(--u));
+    color: #ffff00;
+    text-shadow: calc(1 * var(--u)) calc(1 * var(--u)) 0 #3f3f00;
+    white-space: nowrap;
+    transform: translate(-50%, -50%) rotate(-20deg);
+    transform-origin: center;
+    cursor: default;
+    z-index: 2;
+}
+
+canvas.mc-text {
+    display: inline-block;
+    image-rendering: pixelated;
+}
+
+/* --- кнопки: две половины спрайта widgets.png, ровно как blit в 1.16.1 --- */
+.mc-btn {
+    position: absolute;
+    height: calc(20 * var(--u));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e0e0e0;
+    font-size: calc(10 * var(--u));
+    line-height: calc(10 * var(--u));
+    text-shadow: calc(1 * var(--u)) calc(1 * var(--u)) 0 #383838;
+    cursor: pointer;
+    white-space: nowrap;
+    z-index: 0;
+    --vy: 66;
+    --bw: 200;
+}
+
+.mc-btn::before,
+.mc-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background-image: var(--widgets);
+    background-size: calc(256 * var(--u)) calc(256 * var(--u));
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    z-index: -1;
+}
+
+.mc-btn::before {
+    left: 0;
+    width: calc(50% + 1px);
+    background-position: 0 calc(-1 * var(--vy) * var(--u));
+}
+
+.mc-btn::after {
+    right: 0;
+    width: 50%;
+    background-position: calc((var(--bw) / 2 - 200) * var(--u)) calc(-1 * var(--vy) * var(--u));
+}
+
+.mc-btn:hover {
+    --vy: 86;
+    color: #ffffa0;
+}
+
+.mc-btn.b200 { --bw: 200; width: calc(200 * var(--u)); }
+.mc-btn.b150 { --bw: 150; width: calc(150 * var(--u)); }
+.mc-btn.b100 { --bw: 100; width: calc(100 * var(--u)); }
+.mc-btn.b20  { --bw: 20;  width: calc(20 * var(--u)); }
+
+/* --- раскладка главного меню (формулы 1.16.1 GuiMainMenu) --- */
+.btn-singleplayer { left: calc(50% - 100 * var(--u)); top: calc(var(--gh) / 4 * var(--u) + 48 * var(--u)); }
+.btn-multiplayer  { left: calc(50% - 100 * var(--u)); top: calc(var(--gh) / 4 * var(--u) + 72 * var(--u)); }
+.btn-realms       { left: calc(50% - 100 * var(--u)); top: calc(var(--gh) / 4 * var(--u) + 96 * var(--u)); }
+.btn-globe,
+.btn-options,
+.btn-quit,
+.btn-access       { top: calc(var(--gh) / 4 * var(--u) + 132 * var(--u)); }
+.btn-globe   { left: calc(50% - 125 * var(--u)); }
+.btn-options { left: calc(50% - 100 * var(--u)); }
+.btn-quit    { left: calc(50% + 4 * var(--u)); }
+.btn-access  { left: calc(50% + 108 * var(--u)); }
+
+/* --- иконки-кнопки 20x20 (глобус и спец. возможности) --- */
+.mc-icon {
+    position: absolute;
+    width: calc(20 * var(--u));
+    height: calc(20 * var(--u));
+    background-size: calc(32 * var(--u)) calc(64 * var(--u));
+    image-rendering: pixelated;
+    cursor: pointer;
+    z-index: 0;
+}
+
+.btn-globe {
+    background-image: var(--widgets);
+    background-size: calc(256 * var(--u)) calc(256 * var(--u));
+    background-position: 0 calc(-106 * var(--u));
+}
+
+.btn-globe:hover { background-position: 0 calc(-126 * var(--u)); }
+
+.btn-access {
+    background-image: url('assets/gui/accessibility.png');
+    background-size: calc(32 * var(--u)) calc(64 * var(--u));
+    background-position: 0 0;
+}
+
+.btn-access:hover { background-position: 0 calc(-20 * var(--u)); }
+
+/* --- самоцвет на кнопке Realms --- */
+.realms-gem {
+    position: absolute;
+    right: calc(8 * var(--u));
+    top: 50%;
+    width: calc(6 * var(--u));
+    height: calc(6 * var(--u));
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* --- нижние строки --- */
+.version, .copyright {
+    position: absolute;
+    bottom: calc(1 * var(--u));
+    color: #ffffff;
+    font-size: calc(10 * var(--u));
+    line-height: calc(10 * var(--u));
+    text-shadow: calc(1 * var(--u)) calc(1 * var(--u)) 0 #3f3f3f;
+    z-index: 2;
+}
+
+.version { left: calc(2 * var(--u)); }
+
+.copyright {
+    right: calc(2 * var(--u));
+    cursor: pointer;
+}
+
+/* ================= ЭКРАН НАСТРОЕК (ванилла 1.8, как на референсе) ================= */
+
+#screen-options { --widgets: url('assets/gui/widgets8.png'); }
+
+#screen-options::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('assets/gui/dirt.png');
+    background-size: calc(16 * var(--u)) calc(16 * var(--u));
+    image-rendering: pixelated;
+    filter: brightness(0.25);
+    z-index: 0;
+}
+
+.options-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(15 * var(--u));
+    text-align: center;
+    color: #ffffff;
+    font-size: calc(10 * var(--u));
+    line-height: calc(10 * var(--u));
+    text-shadow: calc(1 * var(--u)) calc(1 * var(--u)) 0 #3f3f3f;
+    z-index: 1;
+}
+
+/* верхний ряд: слайдер + Realms Notifications */
+.opt-slider {
+    left: calc(50% - 155 * var(--u));
+    top: calc(var(--gh) / 4 * var(--u) - 34 * var(--u));
+}
+
+.opt-realms {
+    left: calc(50% + 5 * var(--u));
+    top: calc(var(--gh) / 4 * var(--u) - 34 * var(--u));
+}
+
+/* сетка 2 колонки x 5 рядов */
+.opt-grid .mc-btn { top: calc(var(--gh) / 4 * var(--u) + 20 * var(--u)); }
+.opt-r0 { top: calc(var(--gh) / 4 * var(--u) + 20 * var(--u)) !important; }
+.opt-r1 { top: calc(var(--gh) / 4 * var(--u) + 44 * var(--u)) !important; }
+.opt-r2 { top: calc(var(--gh) / 4 * var(--u) + 68 * var(--u)) !important; }
+.opt-r3 { top: calc(var(--gh) / 4 * var(--u) + 92 * var(--u)) !important; }
+.opt-r4 { top: calc(var(--gh) / 4 * var(--u) + 116 * var(--u)) !important; }
+
+.opt-l { left: calc(50% - 155 * var(--u)); }
+.opt-r { left: calc(50% + 5 * var(--u)); }
+
+.btn-done {
+    left: calc(50% - 100 * var(--u));
+    top: calc(100% - 48 * var(--u));
+}
+
+/* слайдер Поле зрения (визуальный) */
+.mc-slider {
+    position: absolute;
+    width: calc(150 * var(--u));
+    height: calc(20 * var(--u));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e0e0e0;
+    font-size: calc(10 * var(--u));
+    line-height: calc(10 * var(--u));
+    text-shadow: calc(1 * var(--u)) calc(1 * var(--u)) 0 #383838;
+    white-space: nowrap;
+    z-index: 0;
+    --vy: 46; /* трек = тёмная (disabled) полоса widgets.png */
+}
+
+.mc-slider::before,
+.mc-slider::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background-image: var(--widgets);
+    background-size: calc(256 * var(--u)) calc(256 * var(--u));
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    z-index: -1;
+}
+
+.mc-slider::before { left: 0; width: calc(50% + 1px); background-position: 0 calc(-1 * var(--vy) * var(--u)); }
+.mc-slider::after  { right: 0; width: 50%; background-position: calc((75 - 200) * var(--u)) calc(-1 * var(--vy) * var(--u)); }
+
+.slider-thumb {
+    position: absolute;
+    top: 0;
+    left: calc(71 * var(--u));
+    width: calc(8 * var(--u));
+    height: calc(20 * var(--u));
+    background-image: var(--widgets);
+    background-size: calc(256 * var(--u)) calc(256 * var(--u));
+    background-position: 0 calc(-66 * var(--u));
+    image-rendering: pixelated;
+    z-index: -1;
+}
+
+/* ================= ПАСХАЛКИ (перенесены со старой визитки) ================= */
+
+#confetti_canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 998;
+    pointer-events: none;
+}
+
+#blackOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: 999;
+}
+
+#meImage {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+    max-width: 80%;
+    max-height: 80%;
+    user-select: none;
+    pointer-events: none;
+}
+
+#meImage.bounce {
+    animation: bounce 2s infinite ease-in-out;
+}
+
+@keyframes bounce {
+    0% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(-20px); }
+    100% { transform: translate(-50%, -50%) translateY(0); }
+}
+
+#meImage.stretch {
+    animation: stretch 5s infinite ease-in-out;
+}
+
+@keyframes stretch {
+    0% { transform: translate(-50%, -50%) scaleX(1); }
+    50% { transform: translate(-50%, -50%) scaleX(1.5); }
+    100% { transform: translate(-50%, -50%) scaleX(1); }
+}
+
+#meImage.glitch {
+    animation: strongStretch 4s ease-in-out 1;
+}
+
+@keyframes strongStretch {
+    0% { transform: translate(-50%, -50%) scale(1, 1); opacity: 1; }
+    20% { transform: translate(calc(-50% + 50px), calc(-50% + 30px)) scale(2.5, 0.5); opacity: 0.8; }
+    40% { transform: translate(calc(-50% - 40px), calc(-50% - 50px)) scale(0.5, 2.5); opacity: 0.8; }
+    60% { transform: translate(calc(-50% + 60px), calc(-50% + 40px)) scale(2.2, 0.6); opacity: 0.8; }
+    80% { transform: translate(calc(-50% - 50px), calc(-50% + 60px)) scale(0.6, 2.2); opacity: 0.8; }
+    100% { transform: translate(-50%, -50%) scale(1, 1); opacity: 1; }
+}
+
+#meImage.zoomIn {
+    animation: zoomIn 0.5s ease-in-out 1;
+}
+
+@keyframes zoomIn {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(3); opacity: 0.7; }
+}
+
+#modal {
+    position: fixed;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #727272;
+    padding: 20px;
+    border: 2px solid #000;
+    box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.5), inset -3px -3px 0 rgba(0, 0, 0, 0.5);
+    color: #fff;
+    text-shadow: 2px 2px 0 #000;
+    font-size: 24px;
+    z-index: 1000;
+    text-align: center;
+    min-width: 300px;
+    font-family: 'OptiDracula', monospace, sans-serif;
+}
+
+#yes {
+    background: #4caf50;
+    color: #fff;
+    border: 2px solid #000;
+    box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.5), inset -3px -3px 0 rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+    font-family: 'OptiDracula', monospace, sans-serif;
+    text-shadow: 2px 2px 0 #000;
+}
+
+#yes:hover { background: #66bb6a; }
+
+#no {
+    background: #f44336;
+    color: #fff;
+    border: 2px solid #000;
+    box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.5), inset -3px -3px 0 rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+    font-family: 'OptiDracula', monospace, sans-serif;
+    text-shadow: 2px 2px 0 #000;
+}
+
+#no:hover { background: #ef5350; }
+
+#finalImage {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    text-align: center;
+}
+
+#finalImage img {
+    max-width: 80vw;
+    max-height: 80vh;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* ================= СТРАНИЦЫ ВИЗИТКИ (Обо мне / Контакты) — стили из старого style.css ================= */
+
+.content-section {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 4px solid #4c4c4c;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    max-width: 600px;
+    max-height: 95vh;
+    overflow-y: auto;
+    z-index: 10;
+    color: #ffffff;
+    font-family: 'Minecraftia', monospace, sans-serif;
+}
+
+.content-section h2 {
+    font-size: 32px;
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 0 #000;
+    font-family: 'Minecraftia', monospace, sans-serif;
+}
+
+.text-content {
+    min-width: 200px;
+    padding: 5px;
+    text-align: center;
+}
+
+#gif_canvas {
+    width: 300px;
+    height: 300px;
+    max-width: 100%;
+    cursor: grab;
+    margin: 10px auto;
+    display: block;
+    background: none;
+    border: none;
+}
+
+.settings-grid {
+    margin-bottom: 10px;
+    display: grid;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-minecraft {
+    background: #727272;
+    color: rgb(247, 247, 247);
+    padding: 10px 0;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+    font-size: 20px;
+    font-family: 'Minecraftia', monospace, sans-serif;
+    letter-spacing: 0.025em;
+    border: 2px solid rgba(0, 0, 0, 1);
+    box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.5), inset -3px -3px 0 rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    transition: background 0.2s ease;
+}
+
+.btn-minecraft:hover {
+    background: #a0a0a0;
+}
+
+.btn-minecraft:focus {
+    color: rgb(246, 246, 44);
+    outline: none;
+}
+
+.content-section .btn-minecraft[data-action="back"] {
+    width: 450px;
+    margin: 10px auto 5px;
+    padding: 15px;
+    font-size: 22px;
+    background: #727272;
+    color: rgb(247, 247, 247);
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(0, 0, 0, 1);
+    box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.5), inset -3px -3px 0 rgba(0, 0, 0, 0.5);
+    font-family: 'Minecraftia', monospace, sans-serif;
+}
+
+.content-section .btn-minecraft[data-action="back"]:hover {
+    background: #a0a0a0;
+}
+
+.contact-button {
+    width: 450px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #727272;
+    color: rgb(247, 247, 247);
+    padding: 15px;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+    font-size: 22px;
+    letter-spacing: 0.025em;
+    border: 2px solid rgba(0, 0, 0, 1);
+    box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.5), inset -3px -3px 0 rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+}
+
+.contact-button:hover {
+    background: #a0a0a0;
+}
+
+.contact-text {
+    flex: 0 0 auto;
+    text-align: left;
+    margin-right: auto;
+}
+
+.contact-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    flex: 0 0 auto;
+    margin-left: 10px;
+}
