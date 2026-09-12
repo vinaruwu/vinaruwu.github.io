@@ -76,18 +76,22 @@
         document.documentElement.style.setProperty('--gh', (h / u).toFixed(4));
     }
 
-    // ===== панорама =====
+    // ===== фон =====
+    // В MCPE 0.13 фон — статичная заблюренная картинка. Делаем её медленно
+    // «дышащей» (лёгкий сдвиг), чтобы было живо, но без 3D-куба: на узком
+    // экране куб давал чёрные щели между гранями.
     var panoRaf = null;
+    var PANO_DRIFT = 14;   // амплитуда сдвига, px
     function startPano() {
-        var cube = document.getElementById('mcpePanoCube');
-        if (!cube || panoRaf) { return; }
-        var yaw = PANO_YAW0;
-        var last = performance.now();
+        var bg = document.querySelector('.mcpe-pano');
+        if (!bg || panoRaf) { return; }
+        if (PANO_SPEED === 0) { return; }   // ?still=1
+        var t0 = performance.now();
         function step(t) {
-            var dt = (t - last) / 1000;
-            last = t;
-            yaw += PANO_SPEED * dt;
-            cube.style.transform = 'rotateX(' + PANO_PITCH + 'deg) rotateY(' + yaw.toFixed(3) + 'deg)';
+            var s = (t - t0) / 1000;
+            var dx = Math.sin(s * 0.08) * PANO_DRIFT;
+            var dy = Math.cos(s * 0.06) * PANO_DRIFT * 0.5;
+            bg.style.transform = 'scale(1.1) translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px)';
             panoRaf = requestAnimationFrame(step);
         }
         panoRaf = requestAnimationFrame(step);
@@ -153,32 +157,22 @@
         var splash = splashes[Math.floor(Math.random() * splashes.length)];
 
         root.innerHTML =
-            '<div class="mcpe-pano"><div class="mcpe-pano-cube" id="mcpePanoCube">' +
-                '<div class="mcpe-pano-face f-front"></div>' +
-                '<div class="mcpe-pano-face f-right"></div>' +
-                '<div class="mcpe-pano-face f-back"></div>' +
-                '<div class="mcpe-pano-face f-left"></div>' +
-                '<div class="mcpe-pano-face f-top"></div>' +
-                '<div class="mcpe-pano-face f-bottom"></div>' +
-            '</div></div>' +
+            '<div class="mcpe-pano"></div>' +
 
             '<div class="mcpe-screen">' +
-                '<img class="mcpe-logo" src="assets/mcpe/title.png" alt="VINARCRAFT">' +
-                '<div class="mcpe-splash"></div>' +
+                '<img class="mcpe-logo" src="images/logo.png" alt="VINARCRAFT">' +
+                '<div class="mcpe-splash" id="mcpeSplash"></div>' +
 
                 '<div class="mcpe-menu">' +
-                    '<div class="mcpe-btn mcpe-btn-play" data-mcpe="about">Play</div>' +
+                    '<div class="mcpe-btn mcpe-btn-play" data-mcpe="about">Обо мне</div>' +
                     '<div class="mcpe-row-btns">' +
-                        '<div class="mcpe-btn mcpe-btn-options" data-mcpe="options">Options</div>' +
-                        '<div class="mcpe-btn mcpe-btn-skins" data-mcpe="music">Skins</div>' +
+                        '<div class="mcpe-btn mcpe-btn-options" data-mcpe="contacts">Контакты</div>' +
+                        '<div class="mcpe-btn mcpe-btn-skins" data-mcpe="music">Моя музыка</div>' +
                     '</div>' +
                 '</div>' +
 
-                '<div class="mcpe-icon-btn mcpe-btn-feedback" data-mcpe="quit">' +
-                    '<img src="assets/mcpe/Language18.png" alt="">' +
-                '</div>' +
-                '<div class="mcpe-icon-btn mcpe-btn-lang" data-mcpe="contacts">' +
-                    '<img src="assets/mcpe/Language18.png" alt="">' +
+                '<div class="mcpe-icon-btn mcpe-btn-feedback" data-mcpe="quit" title="Выйти">' +
+                    '<img src="images/fox_icon.png" alt="">' +
                 '</div>' +
 
                 '<div class="mcpe-version">v0.13.2 alpha</div>' +
@@ -214,6 +208,9 @@
                     row('Звуки', 'slider', 1.0) +
                 '</div>' +
             '</div>';
+        // сплэш подставляем здесь, где splash в области видимости
+        var spEl = root.querySelector('.mcpe-splash');
+        if (spEl) { spEl.textContent = splash; }
     }
 
     function row(label, kind, value) {
@@ -250,15 +247,17 @@
     }
 
     // ===== обработчики кнопок MCPE =====
+    // Надписи и назначение — как в Java-версии визитки:
+    // «Обо мне» / «Контакты» / «Моя музыка», выход-пасхалка с лисой на иконке.
     function bindActions() {
         document.querySelectorAll('#mcpe-root [data-mcpe]').forEach(function (el) {
             el.addEventListener('click', function (ev) {
                 ev.preventDefault();
                 var a = el.getAttribute('data-mcpe');
-                if (a === 'options') { playClick(); showOptions(true); return; }
                 if (a === 'back') { playClick(); showOptions(false); return; }
+                if (a === 'options') { playClick(); showOptions(true); return; }
                 if (a === 'quit') {
-                    // в 0.13 на этом месте была кнопка feedback; у нас — пасхалка с лисой
+                    // пасхалка с лисами и конфетти (как кнопка «Выйти» в Java)
                     if (window.__mcQuitEgg) { window.__mcQuitEgg(); }
                     return;
                 }
@@ -292,8 +291,6 @@
         var mode = preferredMode();
         buildToggle(mode);
         bindActions();
-        var sp = document.querySelector('.mcpe-splash');
-        if (sp) { sp.textContent = sp.textContent || ''; }
         setMode(mode, false);
 
         window.addEventListener('resize', function () {

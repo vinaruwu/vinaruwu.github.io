@@ -31,37 +31,19 @@ html.mcpe-mode #screen-options { display: none !important; }
 }
 html.mcpe-mode #mcpe-root { display: block; }
 
+/* Фон. В MCPE 0.13 это статичная заблюренная картинка (не вращающийся куб
+   как в Java), поэтому берём одну грань панорамы и растягиваем на экран.
+   Так же не остаётся щелей, которые давал CSS-3D-куб на узком экране. */
 .mcpe-pano {
     position: absolute;
     inset: 0;
-    perspective: 1024px;
-    filter: blur(6px) saturate(1.04);
+    overflow: hidden;
+    background: #000 url('assets/mcpe/panorama_0.png') center / cover no-repeat;
+    filter: blur(4px) saturate(1.15) brightness(1.05);
     z-index: 0;
+    /* запас по краям: blur «съедает» кромки, а JS слегка сдвигает фон */
+    transform: scale(1.1);
 }
-.mcpe-pano-cube {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 1px;
-    height: 1px;
-    transform: rotateX(-30deg) rotateY(12deg);
-    transform-style: preserve-3d;
-}
-.mcpe-pano-face {
-    position: absolute;
-    left: -1040px;
-    top: -1040px;
-    width: 2080px;
-    height: 2080px;
-    background-size: 2080px 2080px;
-    backface-visibility: hidden;
-}
-.mcpe-pano-face.f-front  { background-image: url('assets/mcpe/panorama_0.png'); transform: rotateY(0deg)   translateZ(-1024px); }
-.mcpe-pano-face.f-right  { background-image: url('assets/mcpe/panorama_1.png'); transform: rotateY(90deg)  translateZ(-1024px); }
-.mcpe-pano-face.f-back   { background-image: url('assets/mcpe/panorama_2.png'); transform: rotateY(180deg) translateZ(-1024px); }
-.mcpe-pano-face.f-left   { background-image: url('assets/mcpe/panorama_3.png'); transform: rotateY(270deg) translateZ(-1024px); }
-.mcpe-pano-face.f-top    { background-image: url('assets/mcpe/panorama_4.png'); transform: rotateX(-90deg)  translateZ(-1024px); }
-.mcpe-pano-face.f-bottom { background-image: url('assets/mcpe/panorama_5.png'); transform: rotateX(90deg)   translateZ(-1024px); }
 
 /* ===== виртуальный экран 320x180 ===== */
 .mcpe-screen {
@@ -110,14 +92,16 @@ html.mcpe-mode #mcpe-root { display: block; }
     opacity: 0.65;
 }
 
-/* ===== лого: 55% ширины, верх на 10% ===== */
+/* ===== лого: тот же VINARCRAFT, что в Java-виде =====
+   пропорции как в mc.css (310x54.4 юнита), но на узком экране лого
+   не должно вылезать: ограничиваем шириной 88% и держим пропорцию */
 .mcpe-logo {
     position: absolute;
     left: 50%;
-    top: 9%;
-    width: 55%;
+    top: calc(24 * var(--u));
+    width: min(calc(310 * var(--u)), 88%);
+    height: auto;
     transform: translateX(-50%);
-    image-rendering: pixelated;
     pointer-events: none;
     z-index: 2;
 }
@@ -196,57 +180,51 @@ html.mcpe-mode #mcpe-root { display: block; }
     pointer-events: none;
 }
 
-/* правый низ: иконка языка 18x18.
-   В 0.13 она у самого угла, а версия/копирайт — отдельной строкой выше.
-   Здесь текст стоит внизу, поэтому иконки уводим на строку выше,
-   чтобы вообще не касались надписей. */
-.mcpe-btn-lang {
-    right: 4%;
-    bottom: calc(22 * var(--u));
-    width: calc(20 * var(--u));
-    height: calc(20 * var(--u));
-}
-/* левый низ: выход/пасхалка (в 0.13 там была feedback) */
+/* левый низ: пасхалка с лисой (в Java-версии это кнопка «Выйти»).
+   Правая иконка убрана: её функция (контакты) перешла на кнопку в меню. */
 .mcpe-btn-feedback {
     left: 4%;
     bottom: calc(22 * var(--u));
     width: calc(20 * var(--u));
     height: calc(20 * var(--u));
 }
+.mcpe-btn-feedback img {
+    width: calc(14 * var(--u));
+    height: calc(14 * var(--u));
+    object-fit: contain;
+}
 
-/* ===== версия (справа) и копирайт (слева) =====
-   в 0.13 они стоят вплотную к низу, а иконки — выше них, поэтому
-   отводим тексту отдельную полосу и не даём иконкам её перекрыть */
+/* ===== версия и копирайт =====
+   На официальном скриншоте 0.13.2 обе строки стоят внизу СЛЕВА,
+   версия над копирайтом (в JSON 0.13.0 версия была справа — там иначе). */
 .mcpe-version,
 .mcpe-copyright {
     position: absolute;
-    bottom: calc(1 * var(--u));
+    left: calc(1 * var(--u));
     font-size: calc(7 * var(--u));
     line-height: calc(9 * var(--u));
     color: #ffffff;
     text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 #3f3f3f;
     z-index: 2;
 }
-.mcpe-version { right: calc(1 * var(--u)); text-align: right; }
-.mcpe-copyright { left: calc(1 * var(--u)); }
+.mcpe-copyright { bottom: calc(1 * var(--u)); }
+.mcpe-version { bottom: calc(10 * var(--u)); }
 
-/* ===== тумблер в MCPE-режиме: плоская кнопка 0.13 =====
+/* ===== тумблер в MCPE-режиме: плоские кнопки 0.13, слева вверху =====
    сам элемент общий (#mc-toggle), здесь только вид для этого режима */
 html.mcpe-mode .mc-toggle {
     position: fixed;
-    top: calc(1 * var(--u));
-    left: 50%;
-    transform: translateX(-50%);
+    top: calc(2 * var(--u));
+    left: calc(2 * var(--u));
     display: flex;
     gap: calc(1 * var(--u));
     z-index: 60;
-    padding: calc(1 * var(--u));
-    background: rgba(0, 0, 0, 0.45);
 }
 html.mcpe-mode .mc-toggle button {
-    font-family: inherit;
+    width: calc(20 * var(--u));
+    height: calc(20 * var(--u));
+    padding: 0;
     cursor: pointer;
-    padding: calc(2 * var(--u)) calc(6 * var(--u));
     border-style: solid;
     border-width: calc(1 * var(--u));
     border-image-source: url('assets/mcpe/classic-button.png');
@@ -254,28 +232,33 @@ html.mcpe-mode .mc-toggle button {
     border-image-width: calc(1 * var(--u));
     border-image-repeat: stretch;
     background: none;
-    color: var(--txt);
-    font-size: calc(7 * var(--u));
-    line-height: 1;
-    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 var(--txt-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     -webkit-tap-highlight-color: transparent;
 }
 html.mcpe-mode .mc-toggle button.active {
     border-image-source: url('assets/mcpe/classic-button-pressed.png');
-    color: #ffff33;
 }
-/* на экране настроек уводим тумблер вниз-вправо: он не должен
-   налезать на заголовок и кнопку Back */
+html.mcpe-mode .mc-toggle .ico {
+    width: calc(14 * var(--u));
+    height: calc(14 * var(--u));
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    pointer-events: none;
+    opacity: 0.7;
+}
+html.mcpe-mode .mc-toggle button.active .ico { opacity: 1; }
+html.mcpe-mode .mc-toggle .ico-pc { background-image: url('assets/mcpe/icon_pc.png'); }
+html.mcpe-mode .mc-toggle .ico-phone { background-image: url('assets/mcpe/icon_phone.png'); }
+
+/* на экране настроек тумблер не нужен — он перекрывает кнопку Back */
 html.mcpe-mode.mcpe-opts-open .mc-toggle {
-    top: auto;
-    bottom: calc(2 * var(--u));
-    left: auto;
-    right: calc(2 * var(--u));
-    transform: none;
+    display: none;
 }
 
-/* на экране настроек иконки-пасхалки не нужны */
-html.mcpe-mode.mcpe-opts-open .mcpe-btn-lang,
+/* на экране настроек иконка-пасхалка не нужна */
 html.mcpe-mode.mcpe-opts-open .mcpe-btn-feedback {
     display: none;
 }
@@ -418,17 +401,19 @@ html.mcpe-mode .mcpe-options.open { display: block; }
 }
 .mcpe-row .checkbox.on { border-image-source: url('assets/mcpe/classic-button-pressed.png'); }
 
-/* ===== поправки пропорций ===== */
+/* ===== поправки для портрета ===== */
 @media (orientation: portrait) and (max-width: 600px) {
-    .mcpe-logo { width: 70%; top: 9%; }
-    .mcpe-splash { left: 64%; top: 16%; }
+    /* лого держит пропорцию (5.7:1) — задаём только ширину и высоту авто */
+    .mcpe-logo { width: min(calc(300 * var(--u)), 86%); height: auto; }
+    .mcpe-splash { left: 60%; top: 15%; }
 }
 /* safe-area: не залезать под «домик» и вырез */
 @supports (padding: env(safe-area-inset-bottom)) {
-    .mcpe-version, .mcpe-copyright { bottom: calc(1 * var(--u) + env(safe-area-inset-bottom)); }
-    .mcpe-btn-lang, .mcpe-btn-feedback { bottom: calc(8 * var(--u) + env(safe-area-inset-bottom)); }
+    .mcpe-copyright { bottom: calc(1 * var(--u) + env(safe-area-inset-bottom)); }
+    .mcpe-version { bottom: calc(10 * var(--u) + env(safe-area-inset-bottom)); }
+    .mcpe-btn-feedback { bottom: calc(22 * var(--u) + env(safe-area-inset-bottom)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .mcpe-pano-cube { transform: none !important; }
+    .mcpe-pano { transform: scale(1.1) !important; }
 }
