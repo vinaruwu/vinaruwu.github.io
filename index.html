@@ -6,6 +6,7 @@
     <title>Minecraft 1.16.1</title>
     <link rel="icon" href="assets/icon/icon_32x32.png">
     <link rel="stylesheet" href="mc.css">
+    <link rel="stylesheet" href="mcpe.css">
 </head>
 <body oncontextmenu="return false;" oncopy="return false;" ondragstart="return false;" ondrop="return false;" onselectstart="return false;">
     <!-- Панорама живёт на уровне body: видна и за меню, и за страницами визитки -->
@@ -85,6 +86,16 @@
     <audio id="doYouNeedMe" src="audio/doyouneedme.mp3" preload="auto"></audio>
     <audio id="end" src="audio/end.mp3" preload="auto"></audio>
 
+    <!-- ================= ТУМБЛЕР Java / MCPE ================= -->
+    <div id="mc-toggle" class="mc-toggle" data-mc-chrome>
+        <button type="button" data-mode="java">Java</button>
+        <button type="button" data-mode="mcpe">MCPE</button>
+    </div>
+
+    <!-- ================= MCPE 0.13 (мобильный вид) ================= -->
+    <div id="mcpe-root"></div>
+
     <script src="mc.js"></script>
+    <script src="mcpe.js"></script>
 </body>
 </html>

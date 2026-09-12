@@ -124,6 +124,41 @@ canvas.mc-text {
     image-rendering: pixelated;
 }
 
+/* --- тумблер Java/MCPE: в Java-режиме выглядит ванильной кнопкой 1.16.1 --- */
+.mc-toggle {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: calc(1 * var(--u));
+    z-index: 60;
+    padding: calc(1 * var(--u));
+    background: rgba(0, 0, 0, 0.4);
+}
+.mc-toggle button {
+    font-family: 'Minecraft', 'Minecraftia', monospace, sans-serif;
+    font-size: calc(7 * var(--u));
+    line-height: 1;
+    color: #e0e0e0;
+    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 #383838;
+    padding: calc(2 * var(--u)) calc(4 * var(--u));
+    cursor: pointer;
+    border: none;
+    background-image: var(--widgets);
+    background-size: calc(256 * var(--u)) calc(256 * var(--u));
+    background-position: 0 calc(-66 * var(--u));
+    image-rendering: pixelated;
+    -webkit-tap-highlight-color: transparent;
+}
+.mc-toggle button:hover { background-position: calc(-200 * var(--u)) calc(-86 * var(--u)); color: #ffffa0; }
+.mc-toggle button.active {
+    background-position: calc(-200 * var(--u)) calc(-66 * var(--u));
+    color: #ffffa0;
+}
+/* в MCPE-режиме тумблер прячем — его рисует mcpe.css */
+html.mcpe-mode .mc-toggle { display: none; }
+
 /* --- кнопки: две половины спрайта widgets.png, ровно как blit в 1.16.1 --- */
 .mc-btn {
     position: absolute;

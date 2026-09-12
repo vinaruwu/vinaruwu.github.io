@@ -36,7 +36,7 @@
     // ===== GUI-масштаб: формула auto 1.16.1 (делит окно, пока >= 320x240, cap 4) =====
     function calcScale() {
         var forced = new URLSearchParams(location.search).get('scale');
-        if (forced) { return Math.max(1, parseInt(forced, 10) || 1); }
+        if (forced) { return Math.min(4, Math.max(1, parseInt(forced, 10) || 1)); }
         var w = window.innerWidth;
         var h = window.innerHeight;
         var s = 1;
@@ -282,17 +282,28 @@
     const totalFrames = 79;
     const frames = new Array(totalFrames);
     let loadedFrames = 0;
+    let framesStarted = false;
 
+    // кадры лисы (~8.7 МБ) грузим ТОЛЬКО когда реально открыли «Обо мне»:
+    // раньше они качались при каждом заходе и с ?t=Date.now() мимо кэша
     function preloadFrames() {
+        if (framesStarted) { return Promise.resolve(); }
+        framesStarted = true;
         var loadFrame = function (i) {
-            var img = new Image();
-            img.src = 'images/frames/frame' + i + '.png?t=' + Date.now();
-            img.onload = function () { frames[i] = img; loadedFrames++; };
-            img.onerror = function () { loadedFrames++; };
+            return new Promise(function (resolve) {
+                var img = new Image();
+                img.onload = function () { frames[i] = img; loadedFrames++; resolve(); };
+                img.onerror = function () { loadedFrames++; resolve(); };
+                img.src = 'images/frames/frame' + i + '.png';
+            });
         };
-        for (var i = 0; i < totalFrames; i++) { loadFrame(i); }
+        var tasks = [];
+        for (var i = 0; i < totalFrames; i++) {
+            if (i === 8 || i === 9) { loadedFrames++; continue; } // этих кадров нет в репозитории
+            tasks.push(loadFrame(i));
+        }
+        return Promise.all(tasks);
     }
-    preloadFrames();
 
     function loadPage(href, page) {
         if (href.indexOf('http://') === 0 || href.indexOf('https://') === 0) {
@@ -312,7 +323,7 @@
                     menuContainer.style.display = 'none';
                     contentSection.innerHTML = newContent.innerHTML;
                     contentSection.style.display = 'block';
-                    if (page === 'about') { initAboutCanvas(); }
+                    if (page === 'about') { preloadFrames().then(initAboutCanvas); }
                     if (page === 'contacts') { initContacts(); }
                 }
             })
@@ -751,4 +762,12 @@
         el.ondragstart = function () { return false; };
         el.ondrop = function () { return false; };
     });
+
+    // ===== наружу для MCPE-слоя (mcpe.js) =====
+    window.__mcJavaRescale = applyScale;
+    window.__mcOpenPage = function (page) {
+        var el = document.querySelector('.mc-btn[data-page="' + page + '"]');
+        if (el) { loadPage(el.getAttribute('data-href') || (page + '.html'), page); }
+    };
+    window.__mcQuitEgg = playFoxAndConfetti;
 })();

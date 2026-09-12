@@ -1,0 +1,434 @@
+/* ============================================================
+   MCPE 0.13 (Pocket Edition) — мобильный вид визитки
+   Оригинальные текстуры и геометрия из APK Minecraft PE 0.13.0:
+   виртуальный экран 320x180 юнитов, масштаб = высота / 180.
+   Подключается только когда активен режим mcpe (см. mcpe.js).
+   ============================================================ */
+
+/* ===== переменные режима ===== */
+html.mcpe-mode {
+    --u: 4px;                 /* 1 юнит = 1 px GUI; переопределяется из mcpe.js */
+    --gh: 180;                /* высота экрана в юнитах (родные 180 для PE) */
+    --btn-face: #958681;      /* заливка кнопки (classic-button) */
+    --btn-light: #bcb1ab;     /* светлая фаска */
+    --btn-dark: #282729;      /* тёмная фаска */
+    --txt: #e0e0e0;
+    --txt-shadow: #383838;
+}
+
+/* отключаем ванильный Java-слой */
+html.mcpe-mode .panorama,
+html.mcpe-mode #screen-title,
+html.mcpe-mode #screen-options { display: none !important; }
+
+/* ===== фон: панорама 0.13, заблюренная как в оригинале ===== */
+#mcpe-root {
+    display: none;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+}
+html.mcpe-mode #mcpe-root { display: block; }
+
+.mcpe-pano {
+    position: absolute;
+    inset: 0;
+    perspective: 1024px;
+    filter: blur(6px) saturate(1.04);
+    z-index: 0;
+}
+.mcpe-pano-cube {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1px;
+    height: 1px;
+    transform: rotateX(-30deg) rotateY(12deg);
+    transform-style: preserve-3d;
+}
+.mcpe-pano-face {
+    position: absolute;
+    left: -1040px;
+    top: -1040px;
+    width: 2080px;
+    height: 2080px;
+    background-size: 2080px 2080px;
+    backface-visibility: hidden;
+}
+.mcpe-pano-face.f-front  { background-image: url('assets/mcpe/panorama_0.png'); transform: rotateY(0deg)   translateZ(-1024px); }
+.mcpe-pano-face.f-right  { background-image: url('assets/mcpe/panorama_1.png'); transform: rotateY(90deg)  translateZ(-1024px); }
+.mcpe-pano-face.f-back   { background-image: url('assets/mcpe/panorama_2.png'); transform: rotateY(180deg) translateZ(-1024px); }
+.mcpe-pano-face.f-left   { background-image: url('assets/mcpe/panorama_3.png'); transform: rotateY(270deg) translateZ(-1024px); }
+.mcpe-pano-face.f-top    { background-image: url('assets/mcpe/panorama_4.png'); transform: rotateX(-90deg)  translateZ(-1024px); }
+.mcpe-pano-face.f-bottom { background-image: url('assets/mcpe/panorama_5.png'); transform: rotateX(90deg)   translateZ(-1024px); }
+
+/* ===== виртуальный экран 320x180 ===== */
+.mcpe-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* ===== кнопка: nine-slice из classic-button.png =====
+   текстура 8x8, рабочий угол 5x5, nine_slice_size 2 в юнитах игры.
+   border-image-width задаём в var(--u)*2, а slice — в пикселях текстуры. */
+.mcpe-btn {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border-style: solid;
+    border-width: calc(2 * var(--u));
+    border-image-source: url('assets/mcpe/classic-button.png');
+    border-image-slice: 2 fill;
+    border-image-width: calc(2 * var(--u));
+    border-image-repeat: stretch;
+    color: var(--txt);
+    font-size: calc(8 * var(--u));
+    line-height: 1;
+    letter-spacing: calc(0.25 * var(--u));
+    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 var(--txt-shadow);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    white-space: nowrap;
+    image-rendering: pixelated;
+}
+/* hover — только там, где есть мышь (в игре текст желтел) */
+@media (hover: hover) {
+    .mcpe-btn:hover {
+        border-image-source: url('assets/mcpe/classic-button-hover.png');
+        color: #ffff33;
+    }
+}
+/* pressed: в оригинале текстура + alpha 0.65 на всей кнопке */
+.mcpe-btn:active {
+    border-image-source: url('assets/mcpe/classic-button-pressed.png');
+    opacity: 0.65;
+}
+
+/* ===== лого: 55% ширины, верх на 10% ===== */
+.mcpe-logo {
+    position: absolute;
+    left: 50%;
+    top: 9%;
+    width: 55%;
+    transform: translateX(-50%);
+    image-rendering: pixelated;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* ===== сплэш: низ-право лого, наклон -17.9° ===== */
+.mcpe-splash {
+    position: absolute;
+    left: 62%;
+    top: 15%;
+    color: #ffff00;
+    font-size: calc(7 * var(--u));
+    line-height: 1;
+    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 #3f3f00;
+    transform: rotate(-17.9deg);
+    transform-origin: center;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* ===== раскладка кнопок (родные координаты 0.13) =====
+   Play 100x20 юнитов, под ним Options 49 + Skins 49 с зазором 2.
+   Центрируем весь блок через один контейнер — как в игре, иначе
+   translateX на каждой кнопке даёт дробный сдвиг и ряд «уезжает».
+   Высоту держим 1.75x от родной: удобно для пальца, но кнопка
+   остаётся вытянутой (в 0.13 они ~5:1). */
+.mcpe-menu {
+    position: absolute;
+    left: 50%;
+    top: calc(50% - 22 * var(--u));
+    transform: translateX(-50%);
+    width: calc(100 * var(--u));
+    display: flex;
+    flex-direction: column;
+    gap: calc(2 * var(--u));
+}
+.mcpe-menu .mcpe-btn { position: relative; left: auto; top: auto; transform: none; }
+.mcpe-row-btns { display: flex; gap: calc(2 * var(--u)); }
+.mcpe-btn-play {
+    width: 100%;
+    height: calc(35 * var(--u));
+}
+.mcpe-btn-options,
+.mcpe-btn-skins {
+    width: calc(49 * var(--u));
+    height: calc(35 * var(--u));
+}
+
+/* ===== мелкие кнопки-иконки ===== */
+.mcpe-icon-btn {
+    position: absolute;
+    width: calc(24 * var(--u));
+    height: calc(24 * var(--u));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border-style: solid;
+    border-width: calc(1 * var(--u));
+    border-image-source: url('assets/mcpe/classic-button.png');
+    border-image-slice: 2 fill;
+    border-image-width: calc(1 * var(--u));
+    border-image-repeat: stretch;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    image-rendering: pixelated;
+}
+@media (hover: hover) {
+    .mcpe-icon-btn:hover { border-image-source: url('assets/mcpe/classic-button-hover.png'); }
+}
+.mcpe-icon-btn:active { border-image-source: url('assets/mcpe/classic-button-pressed.png'); opacity: 0.65; }
+.mcpe-icon-btn img {
+    width: calc(18 * var(--u));
+    height: calc(18 * var(--u));
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+/* правый низ: иконка языка 18x18.
+   В 0.13 она у самого угла, а версия/копирайт — отдельной строкой выше.
+   Здесь текст стоит внизу, поэтому иконки уводим на строку выше,
+   чтобы вообще не касались надписей. */
+.mcpe-btn-lang {
+    right: 4%;
+    bottom: calc(22 * var(--u));
+    width: calc(20 * var(--u));
+    height: calc(20 * var(--u));
+}
+/* левый низ: выход/пасхалка (в 0.13 там была feedback) */
+.mcpe-btn-feedback {
+    left: 4%;
+    bottom: calc(22 * var(--u));
+    width: calc(20 * var(--u));
+    height: calc(20 * var(--u));
+}
+
+/* ===== версия (справа) и копирайт (слева) =====
+   в 0.13 они стоят вплотную к низу, а иконки — выше них, поэтому
+   отводим тексту отдельную полосу и не даём иконкам её перекрыть */
+.mcpe-version,
+.mcpe-copyright {
+    position: absolute;
+    bottom: calc(1 * var(--u));
+    font-size: calc(7 * var(--u));
+    line-height: calc(9 * var(--u));
+    color: #ffffff;
+    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 #3f3f3f;
+    z-index: 2;
+}
+.mcpe-version { right: calc(1 * var(--u)); text-align: right; }
+.mcpe-copyright { left: calc(1 * var(--u)); }
+
+/* ===== тумблер в MCPE-режиме: плоская кнопка 0.13 =====
+   сам элемент общий (#mc-toggle), здесь только вид для этого режима */
+html.mcpe-mode .mc-toggle {
+    position: fixed;
+    top: calc(1 * var(--u));
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: calc(1 * var(--u));
+    z-index: 60;
+    padding: calc(1 * var(--u));
+    background: rgba(0, 0, 0, 0.45);
+}
+html.mcpe-mode .mc-toggle button {
+    font-family: inherit;
+    cursor: pointer;
+    padding: calc(2 * var(--u)) calc(6 * var(--u));
+    border-style: solid;
+    border-width: calc(1 * var(--u));
+    border-image-source: url('assets/mcpe/classic-button.png');
+    border-image-slice: 2 fill;
+    border-image-width: calc(1 * var(--u));
+    border-image-repeat: stretch;
+    background: none;
+    color: var(--txt);
+    font-size: calc(7 * var(--u));
+    line-height: 1;
+    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 var(--txt-shadow);
+    -webkit-tap-highlight-color: transparent;
+}
+html.mcpe-mode .mc-toggle button.active {
+    border-image-source: url('assets/mcpe/classic-button-pressed.png');
+    color: #ffff33;
+}
+/* на экране настроек уводим тумблер вниз-вправо: он не должен
+   налезать на заголовок и кнопку Back */
+html.mcpe-mode.mcpe-opts-open .mc-toggle {
+    top: auto;
+    bottom: calc(2 * var(--u));
+    left: auto;
+    right: calc(2 * var(--u));
+    transform: none;
+}
+
+/* на экране настроек иконки-пасхалки не нужны */
+html.mcpe-mode.mcpe-opts-open .mcpe-btn-lang,
+html.mcpe-mode.mcpe-opts-open .mcpe-btn-feedback {
+    display: none;
+}
+
+/* ===== экран настроек 0.13: колонка иконок-вкладок ===== */
+.mcpe-options {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: none;
+}
+html.mcpe-mode .mcpe-options.open { display: block; }
+
+.mcpe-options-header {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: calc(24 * var(--u));
+    background: var(--btn-face);
+    border-bottom: calc(1 * var(--u)) solid var(--btn-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: calc(9 * var(--u));
+    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 var(--txt-shadow);
+}
+.mcpe-options-header .mcpe-back {
+    position: absolute;
+    left: calc(1 * var(--u));
+    top: calc(2 * var(--u));
+    width: calc(40 * var(--u));
+    height: calc(20 * var(--u));
+    font-size: calc(8 * var(--u));
+}
+
+/* колонка вкладок с иконками из spritesheet.png */
+.mcpe-tabs {
+    position: absolute;
+    left: 0;
+    top: calc(24 * var(--u));
+    width: calc(28 * var(--u));
+    bottom: 0;
+    background: rgba(40, 39, 41, 0.35);
+    border-right: calc(1 * var(--u)) solid rgba(0, 0, 0, 0.4);
+}
+.mcpe-tab {
+    width: calc(24 * var(--u));
+    height: calc(24 * var(--u));
+    margin: calc(2 * var(--u));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-style: solid;
+    border-width: calc(1 * var(--u));
+    border-image-source: url('assets/mcpe/classic-button.png');
+    border-image-slice: 2 fill;
+    border-image-width: calc(1 * var(--u));
+    border-image-repeat: stretch;
+    cursor: pointer;
+    image-rendering: pixelated;
+}
+.mcpe-tab.active { border-image-source: url('assets/mcpe/classic-button-pressed.png'); }
+.mcpe-tab .ico {
+    width: calc(16 * var(--u));
+    height: calc(16 * var(--u));
+    background-image: url('assets/mcpe/spritesheet.png');
+    background-size: calc(256 * var(--u)) calc(256 * var(--u));
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+/* иконки вкладок: ячейки 16x16 в spritesheet */
+.mcpe-tab .ico-game     { background-position: calc(-0  * var(--u)) calc(-96 * var(--u)); }  /* кирки 0,6 */
+.mcpe-tab .ico-graphics { background-position: calc(-32 * var(--u)) calc(-16 * var(--u)); }  /* частицы 2,1 */
+.mcpe-tab .ico-controls { background-position: calc(-0  * var(--u)) calc(-80 * var(--u)); }  /* вагонетка 0,5 */
+.mcpe-tab .ico-sound    { background-position: calc(-16 * var(--u)) calc(-32 * var(--u)); }  /* динамик 1,2 */
+
+/* тело настроек: фон bg32.png как в 0.13 */
+.mcpe-options-body {
+    position: absolute;
+    left: calc(28 * var(--u));
+    right: 0;
+    top: calc(24 * var(--u));
+    bottom: 0;
+    background: url('assets/mcpe/bg32.png');
+    background-size: calc(32 * var(--u)) calc(32 * var(--u));
+    overflow-y: auto;
+    padding: calc(6 * var(--u)) calc(4 * var(--u));
+}
+.mcpe-group-title {
+    color: #ffffff;
+    font-size: calc(9 * var(--u));
+    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 var(--txt-shadow);
+    margin: calc(2 * var(--u)) 0 calc(3 * var(--u));
+}
+.mcpe-row {
+    display: flex;
+    align-items: center;
+    height: calc(16 * var(--u));
+    gap: calc(3 * var(--u));
+}
+.mcpe-row .label {
+    flex: 1 1 auto;
+    color: var(--txt);
+    font-size: calc(8 * var(--u));
+    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 var(--txt-shadow);
+}
+.mcpe-row .slider {
+    position: relative;
+    width: calc(80 * var(--u));
+    height: calc(4 * var(--u));
+    background: #4a4443;
+    border: calc(0.5 * var(--u)) solid #2b2927;
+}
+.mcpe-row .slider .knob {
+    position: absolute;
+    top: calc(-4 * var(--u));
+    width: calc(8 * var(--u));
+    height: calc(12 * var(--u));
+    background-image: url('assets/mcpe/spritesheet.png');
+    background-size: calc(256 * var(--u)) calc(256 * var(--u));
+    background-position: calc(-80 * var(--u)) calc(-96 * var(--u)); /* 5,6 бегунок */
+    image-rendering: pixelated;
+}
+.mcpe-row .checkbox {
+    width: calc(16 * var(--u));
+    height: calc(16 * var(--u));
+    border-style: solid;
+    border-width: calc(1 * var(--u));
+    border-image-source: url('assets/mcpe/classic-button.png');
+    border-image-slice: 2 fill;
+    border-image-width: calc(1 * var(--u));
+    border-image-repeat: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: calc(8 * var(--u));
+}
+.mcpe-row .checkbox.on { border-image-source: url('assets/mcpe/classic-button-pressed.png'); }
+
+/* ===== поправки пропорций ===== */
+@media (orientation: portrait) and (max-width: 600px) {
+    .mcpe-logo { width: 70%; top: 9%; }
+    .mcpe-splash { left: 64%; top: 16%; }
+}
+/* safe-area: не залезать под «домик» и вырез */
+@supports (padding: env(safe-area-inset-bottom)) {
+    .mcpe-version, .mcpe-copyright { bottom: calc(1 * var(--u) + env(safe-area-inset-bottom)); }
+    .mcpe-btn-lang, .mcpe-btn-feedback { bottom: calc(8 * var(--u) + env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mcpe-pano-cube { transform: none !important; }
+}
