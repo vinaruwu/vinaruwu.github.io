@@ -92,31 +92,34 @@ html.mcpe-mode #mcpe-root { display: block; }
     opacity: 0.65;
 }
 
-/* ===== лого: тот же VINARCRAFT, что в Java-виде =====
-   пропорции как в mc.css (310x54.4 юнита), но на узком экране лого
-   не должно вылезать: ограничиваем шириной 88% и держим пропорцию */
-.mcpe-logo {
+/* ===== лого + сплэш =====
+   Лого VINARCRAFT плоское и длинное (5.7:1), поэтому сплэш сажаем
+   ниже и правее — он ложится на правый низ лого, как в MCPE 0.13,
+   но не наезжает на буквы. */
+.mcpe-logo-wrap {
     position: absolute;
     left: 50%;
-    top: calc(24 * var(--u));
-    width: min(calc(310 * var(--u)), 88%);
-    height: auto;
+    top: calc(20 * var(--u));
+    width: min(calc(310 * var(--u)), 76%);
     transform: translateX(-50%);
-    pointer-events: none;
     z-index: 2;
+    pointer-events: none;
+}
+.mcpe-logo {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
-/* ===== сплэш: низ-право лого, наклон -17.9° ===== */
+/* ===== сплэш =====
+   Пиксельный шрифт 1.16.1 (рендерит mc.js), наклон -17.9° как в MCPE,
+   пульсация по ванильной формуле 1.16.1. */
 .mcpe-splash {
     position: absolute;
-    left: 62%;
-    top: 15%;
-    color: #ffff00;
-    font-size: calc(7 * var(--u));
-    line-height: 1;
-    text-shadow: calc(0.5 * var(--u)) calc(0.5 * var(--u)) 0 #3f3f00;
+    left: 46%;
+    top: 82%;
+    transform-origin: 0 50%;
     transform: rotate(-17.9deg);
-    transform-origin: center;
     white-space: nowrap;
     pointer-events: none;
     z-index: 3;
@@ -403,9 +406,7 @@ html.mcpe-mode .mcpe-options.open { display: block; }
 
 /* ===== поправки для портрета ===== */
 @media (orientation: portrait) and (max-width: 600px) {
-    /* лого держит пропорцию (5.7:1) — задаём только ширину и высоту авто */
-    .mcpe-logo { width: min(calc(300 * var(--u)), 86%); height: auto; }
-    .mcpe-splash { left: 60%; top: 15%; }
+    .mcpe-logo-wrap { width: min(calc(300 * var(--u)), 78%); }
 }
 /* safe-area: не залезать под «домик» и вырез */
 @supports (padding: env(safe-area-inset-bottom)) {

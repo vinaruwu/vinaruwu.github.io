@@ -103,8 +103,28 @@
     // не жжём батарею на скрытой вкладке
     document.addEventListener('visibilitychange', function () {
         if (!isMcpe) { return; }
-        if (document.hidden) { stopPano(); } else { startPano(); }
+        if (document.hidden) { stopPano(); stopSplashPulse(); }
+        else { startPano(); startSplashPulse(); }
     });
+
+    // ===== пульсация сплэша =====
+    // Ванильная формула 1.16.1: f = 1.8 - 0.1*|sin|, период 1000 мс.
+    // Поворот -17.9° — как в MCPE 0.13 (в Java -20°).
+    var SPLASH_ROT = -17.9;
+    var splashRaf = null;
+    function startSplashPulse() {
+        var el = document.getElementById('mcpeSplash');
+        if (!el || splashRaf) { return; }
+        function step(t) {
+            var f = 1.8 - 0.1 * Math.abs(Math.sin((t % 1000) / 1000 * Math.PI * 2));
+            el.style.transform = 'rotate(' + SPLASH_ROT + 'deg) scale(' + (f / 1.8).toFixed(4) + ')';
+            splashRaf = requestAnimationFrame(step);
+        }
+        splashRaf = requestAnimationFrame(step);
+    }
+    function stopSplashPulse() {
+        if (splashRaf) { cancelAnimationFrame(splashRaf); splashRaf = null; }
+    }
 
     // ===== экраны =====
     function showOptions(open) {
@@ -137,8 +157,10 @@
         if (isMcpe) {
             applyMcpeScale();
             startPano();
+            startSplashPulse();
         } else {
             stopPano();
+            stopSplashPulse();
             // вернуть Java-слой: пересчитать его масштаб
             if (window.__mcJavaRescale) { window.__mcJavaRescale(); }
         }
@@ -155,13 +177,14 @@
             'бр бр потопила', 'Сделано с душой :3', 'Играй в кармане!'
         ];
         var splash = splashes[Math.floor(Math.random() * splashes.length)];
-
         root.innerHTML =
             '<div class="mcpe-pano"></div>' +
 
             '<div class="mcpe-screen">' +
-                '<img class="mcpe-logo" src="images/logo.png" alt="VINARCRAFT">' +
-                '<div class="mcpe-splash" id="mcpeSplash"></div>' +
+                '<div class="mcpe-logo-wrap">' +
+                    '<img class="mcpe-logo" src="images/logo.png" alt="VINARCRAFT">' +
+                    '<div class="mcpe-splash" id="mcpeSplash"></div>' +
+                '</div>' +
 
                 '<div class="mcpe-menu">' +
                     '<div class="mcpe-btn mcpe-btn-play" data-mcpe="about">Обо мне</div>' +
@@ -208,9 +231,16 @@
                     row('Звуки', 'slider', 1.0) +
                 '</div>' +
             '</div>';
-        // сплэш подставляем здесь, где splash в области видимости
+        // сплэш: ванильный пиксельный шрифт + пульсация, как в Java-виде.
+        // Текст ставим здесь, где splash в области видимости.
         var spEl = root.querySelector('.mcpe-splash');
-        if (spEl) { spEl.textContent = splash; }
+        if (spEl) {
+            if (window.__mcSetBitmapText) {
+                window.__mcSetBitmapText(spEl, splash, '#ffff00', '#3f3f00', { splash: true, scale: 0.55 });
+            } else {
+                spEl.textContent = splash;   // фолбэк, если Java-слой не загрузился
+            }
+        }
     }
 
     function row(label, kind, value) {

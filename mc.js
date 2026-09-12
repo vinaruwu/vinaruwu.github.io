@@ -235,6 +235,8 @@
                 // формула 1.16.1 с ванильными ширинами, но с потолком — иначе короткие сплэши огромные
                 scaleF = Math.min(1.8 * 100 / (m.width + 32), 1.2);
             }
+            // множитель для режимов с другой базовой единицей (MCPE использует мелкую --u)
+            if (opts && opts.scale) { scaleF *= opts.scale; }
             canvas.style.width = 'calc(' + (m.width * scaleF).toFixed(3) + ' * var(--u))';
             canvas.style.height = 'calc(' + (8 * scaleF).toFixed(3) + ' * var(--u))';
         });
@@ -770,4 +772,11 @@
         if (el) { loadPage(el.getAttribute('data-href') || (page + '.html'), page); }
     };
     window.__mcQuitEgg = playFoxAndConfetti;
+    // ванильный битмап-рендерер: MCPE-вид рисует им сплэш и подписи кнопок
+    window.__mcSetBitmapText = function (el, text, color, shadow, opts) {
+        if (FONT.ready) { setBitmapText(el, text, color, shadow, opts); return Promise.resolve(); }
+        return FONT.whenReady.then(function () {
+            setBitmapText(el, text, color, shadow, opts);
+        });
+    };
 })();
